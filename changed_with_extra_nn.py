@@ -4,8 +4,7 @@ import os
 
 
 def main():
-
-    with tf.name_scope('normal'):
+    with tf.name_scope('changed_with_extra_nn'):
         y_ = tf.placeholder(tf.float32, [None, 10], name='y_')
         x = tf.placeholder(tf.float32, [None, 784], name='x')
         nstep = tf.Variable(0, trainable=False, name='step')
@@ -13,7 +12,11 @@ def main():
             keep_prob = tf.placeholder(tf.float32, name='keep_prob')
             tf.summary.scalar('dropout_keep_probability', keep_prob)
 
-        main_net = le_net(x, keep_prob, 'LeNet')
+        encoded = encode_with_p_q(x)
+        p_inverse = weight_variable((28, 28), 'p_inverse')
+        q_inverse = weight_variable((28, 28), 'q_inverse')
+        decoded = permute(encoded, p_inverse, q_inverse)
+        main_net = le_net(decoded, keep_prob, 'LeNet')
         train_step, accuracy = train_affair(y_, main_net, 'train_affair')
 
     merged = tf.summary.merge_all()
@@ -21,9 +24,9 @@ def main():
     sess = tf.Session()
     mnist = input_data.read_data_sets("./MNIST_data/", one_hot=True)
 
-    train_writer = tf.summary.FileWriter('./tensorboard/normal' + '/train', sess.graph)
+    train_writer = tf.summary.FileWriter('./tensorboard/changed_with_extra_nn' + '/train', sess.graph)
     saver = tf.train.Saver()
-    saver_path = './checkpoints/normal.ckpt'
+    saver_path = './checkpoints/changed_with_extra_nn.ckpt'
     if os.path.isfile(saver_path+'.meta'):
         saver.restore(sess, saver_path)
     else:
@@ -42,7 +45,7 @@ def main():
             sess.run(tf.assign(nstep, i))
             saver.save(sess, saver_path)
             saver2 = tf.train.Saver()
-            saver2.save(sess, './checkpoints/normal_%d.ckpt' % i)
+            saver2.save(sess, './checkpoints/changed_with_extra_nn_%d.ckpt' % i)
         summary, _ = sess.run([merged, train_step], feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
         train_writer.add_summary(summary, i)
 

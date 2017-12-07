@@ -1,18 +1,19 @@
 import tensorflow as tf
+import pickle
 
 
-def weight_variable(shape):
+def weight_variable(shape, name=None):
     initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
+    return tf.Variable(initial, name=name)
 
 
-def bias_variable(shape):
+def bias_variable(shape, name=None):
     initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
+    return tf.Variable(initial, name=name)
 
 
-def conv2d(x, w):
-    return tf.nn.conv2d(x, w, strides=[1, 1, 1, 1], padding='SAME')
+def conv2d(x, w, name=None):
+    return tf.nn.conv2d(x, w, strides=[1, 1, 1, 1], padding='SAME', name=name)
 
 
 def max_pool_2x2(x, name=None):
@@ -109,3 +110,30 @@ def train_affair(labels, logits, name):
         tf.summary.scalar('accuracy', accuracy)
 
     return train_step, accuracy
+
+
+def permute(input_tensor, p, q, name='permutation'):
+    with tf.name_scope(name):
+        t = tf.reshape(input_tensor, [-1, 28])
+        t = tf.matmul(t, q)
+        t = tf.reshape(t, [-1, 28, 28])
+        t = tf.map_fn(lambda x: tf.matmul(p, x), t)
+        t = tf.reshape(t, [-1, 28 * 28])
+        tf.summary.histogram('permuted', t)
+    return t
+
+
+matrix_p = None
+matrix_q = None
+
+
+def encode_with_p_q(input_tensor, name='encoded'):
+    with tf.name_scope(name):
+        global matrix_q
+        global matrix_p
+        if matrix_p is None or matrix_q is None:
+            matrix_p, matrix_q = pickle.load(open('./static/matrix.pkl', 'rb'))
+        p = tf.constant(matrix_p, dtype=tf.float32, shape=[28, 28])
+        q = tf.constant(matrix_q, dtype=tf.float32, shape=[28, 28])
+        permuted = permute(input_tensor, p, q)
+    return permuted

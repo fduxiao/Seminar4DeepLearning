@@ -4,3 +4,6 @@ MNIST_data/
 tensorboard/
 __pycache__
 checkpoints/
+static/
+output/
+*.pyc
