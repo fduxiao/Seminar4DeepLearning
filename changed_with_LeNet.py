@@ -21,7 +21,7 @@ def main():
     sess = tf.Session()
     mnist = input_data.read_data_sets("./MNIST_data/", one_hot=True)
 
-    train_writer = tf.summary.FileWriter('./tensorboard/changed_with_LeNet' + '/train', sess.graph)
+    train_writer = tf.summary.FileWriter('./tensorboard/changed_with_LeNet', sess.graph)
     saver = tf.train.Saver()
     saver_path = './checkpoints/changed_with_LeNet.ckpt'
     if os.path.isfile(saver_path+'.meta'):
@@ -41,8 +41,8 @@ def main():
         if i % 500 == 0:
             sess.run(tf.assign(nstep, i))
             saver.save(sess, saver_path)
-            saver2 = tf.train.Saver()
-            saver2.save(sess, './checkpoints/changed_with_LeNet_%d.ckpt' % i)
+            # saver2 = tf.train.Saver()
+            # saver2.save(sess, './checkpoints/changed_with_LeNet_%d.ckpt' % i)
         summary, _ = sess.run([merged, train_step], feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
         train_writer.add_summary(summary, i)
 

@@ -23,7 +23,6 @@ def main():
             d = permute(e, p_inverse, q_inverse)
             tf.summary.image('image_%d' % l, tf.reshape(d*256, [-1, 28, 28, 1]), max_outputs=10)
         loss = tf.losses.mean_squared_error(y_, decoded)
-        tf.summary.scalar('loss', loss)
         train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 
     merged = tf.summary.merge_all()
@@ -31,7 +30,7 @@ def main():
     sess = tf.Session()
     mnist = input_data.read_data_sets("./MNIST_data/", one_hot=True)
 
-    train_writer = tf.summary.FileWriter('./tensorboard/inverse_image' + '/train', sess.graph)
+    train_writer = tf.summary.FileWriter('./tensorboard/inverse_image', sess.graph)
     saver = tf.train.Saver()
     saver_path = './checkpoints/inverse_image.ckpt'
     if os.path.isfile(saver_path+'.meta'):
