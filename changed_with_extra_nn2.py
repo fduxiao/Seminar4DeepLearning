@@ -4,7 +4,7 @@ import os
 
 
 def main():
-    with tf.name_scope('changed_with_extra_nn'):
+    with tf.name_scope('changed_with_extra_nn2'):
         y_ = tf.placeholder(tf.float32, [None, 10], name='y_')
         x = tf.placeholder(tf.float32, [None, 784], name='x')
         nstep = tf.Variable(0, trainable=False, name='step')
@@ -12,21 +12,22 @@ def main():
             keep_prob = tf.placeholder(tf.float32, name='keep_prob')
             tf.summary.scalar('dropout_keep_probability', keep_prob)
 
-        encoded = encode_with_p_q(x)
+        p, q = pickle.load(open('./static/matrix2.pkl', 'rb'))
+        p = tf.constant(p, dtype=tf.float32, shape=[28, 28])
+        q = tf.constant(q, dtype=tf.float32, shape=[28, 28])
+        encoded = permute(x, p, q)
 
         with tf.name_scope('p_inverse'):
             p_inverse = weight_variable((28, 28))
             variable_summaries(p_inverse)
-            tf.summary.histogram('matrix', p_inverse)
 
         with tf.name_scope('q_inverse'):
             q_inverse = weight_variable((28, 28))
             variable_summaries(q_inverse)
-            tf.summary.histogram('matrix', q_inverse)
 
         decoded = permute(encoded, p_inverse, q_inverse)
 
-        pictures = pickle.load(open('./static/pictures.pkl', 'rb'))
+        pictures = pickle.load(open('./static/pictures2.pkl', 'rb'))
         for l, im in pictures.items():
             e = encode_with_p_q(im)
             d = permute(e, p_inverse, q_inverse)
@@ -40,9 +41,9 @@ def main():
     sess = tf.Session()
     mnist = input_data.read_data_sets("./MNIST_data/", one_hot=True)
 
-    train_writer = tf.summary.FileWriter('./tensorboard/changed_with_extra_nn', sess.graph)
+    train_writer = tf.summary.FileWriter('./tensorboard/changed_with_extra_nn2', sess.graph)
     saver = tf.train.Saver()
-    saver_path = './checkpoints/changed_with_extra_nn.ckpt'
+    saver_path = './checkpoints/changed_with_extra_nn2.ckpt'
     if os.path.isfile(saver_path+'.meta'):
         saver.restore(sess, saver_path)
     else:
@@ -61,7 +62,7 @@ def main():
             sess.run(tf.assign(nstep, i))
             saver.save(sess, saver_path)
             # saver2 = tf.train.Saver()
-            # saver2.save(sess, './checkpoints/changed_with_extra_nn_%d.ckpt' % i)
+            # saver2.save(sess, './checkpoints/changed_with_extra_nn2_%d.ckpt' % i)
         summary, _ = sess.run([merged, train_step], feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
         train_writer.add_summary(summary, i)
 

@@ -9,7 +9,6 @@ def main():
         y_ = tf.placeholder(tf.float32, [None, 784], name='y_')
         x = tf.placeholder(tf.float32, [None, 784], name='x')
         nstep = tf.Variable(0, trainable=False, name='step')
-        tf.summary.scalar('step', nstep)
         keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
         encoded = encode_with_p_q(x)
@@ -23,6 +22,7 @@ def main():
             d = permute(e, p_inverse, q_inverse)
             tf.summary.image('image_%d' % l, tf.reshape(d*256, [-1, 28, 28, 1]), max_outputs=10)
         loss = tf.losses.mean_squared_error(y_, decoded)
+        tf.summary.scalar('loss', loss)
         train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 
     merged = tf.summary.merge_all()
