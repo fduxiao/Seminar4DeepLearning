@@ -1,6 +1,7 @@
 from basic_framework import *
 from tensorflow.examples.tutorials.mnist import input_data
 import os
+import numpy as np
 
 
 def main():
@@ -27,14 +28,57 @@ def main():
 
         decoded = permute(encoded, p_inverse, q_inverse)
 
-        pictures = pickle.load(open('./static/pictures2.pkl', 'rb'))
+        pictures = pickle.load(open('./static/pictures.pkl', 'rb'))
         for l, im in pictures.items():
             e = encode_with_p_q(im)
             d = permute(e, p_inverse, q_inverse)
-            tf.summary.image('image_%d' % l, tf.reshape(d * 256, [-1, 28, 28, 1]), max_outputs=10)
+            tf.summary.image('image_%d' % l, tf.reshape(d, [-1, 28, 28, 1]), max_outputs=20)
 
-        main_net = le_net(decoded, keep_prob, 'LeNet')
-        train_step, accuracy = train_affair(y_, main_net, 'train_affair', rate=1e-4)
+        with tf.name_scope('LeNet'):
+            x_image = tf.reshape(decoded, [-1, 28, 28, 1])
+            cnn1 = cnn_layer(x_image, [5, 5, 1, 32], "cnn1")
+            cnn2 = cnn_layer(cnn1, [5, 5, 32, 64], "cnn2")
+            cnn2_flat = tf.reshape(cnn2, [-1, 7 * 7 * 64])
+
+            nn1 = nn_layer(cnn2_flat, 7 * 7 * 64, 1024, 'nn1')
+            nn1_drop = tf.nn.dropout(nn1, keep_prob)
+
+            nn2 = nn_layer(nn1_drop, 1024, 10, 'nn2')
+            nn2_drop = tf.nn.dropout(nn2, keep_prob)
+
+        rate = 0.001
+        with tf.name_scope('train_affair'):
+            with tf.name_scope('cross_entropy'):
+                diff = tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=nn2_drop)
+                with tf.name_scope('total'):
+                    cross_entropy = tf.reduce_mean(diff)
+            tf.summary.scalar('cross_entropy', cross_entropy)
+
+            with tf.name_scope('penalty'):
+                cnn1_flat = tf.reshape(cnn1, [-1, 14*14, 32])
+                _, var1 = tf.nn.moments(cnn1_flat, axes=[1])
+                std1 = tf.sqrt(var1)
+                penalty1 = tf.reduce_mean(tf.reshape(std1, [-1]))
+                variable_summaries(penalty1)
+
+                cnn2_flat = tf.reshape(cnn2, [-1, 7*7, 64])
+                _, var2 = tf.nn.moments(cnn2_flat, axes=[1])
+                std2 = tf.sqrt(var2)
+                penalty2 = tf.reduce_mean(tf.reshape(std2, [-1]))
+                variable_summaries(penalty2)
+
+            loss = cross_entropy / tf.exp(penalty1)
+            tf.summary.scalar('loss', loss)
+
+            with tf.name_scope('train'):
+                train_step = tf.train.AdamOptimizer(rate).minimize(loss)
+
+            with tf.name_scope('accuracy'):
+                with tf.name_scope('correct_prediction'):
+                    correct_prediction = tf.equal(tf.argmax(y_, 1), tf.argmax(nn2_drop, 1))
+                with tf.name_scope('accuracy'):
+                    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+            tf.summary.scalar('accuracy', accuracy)
 
     merged = tf.summary.merge_all()
 
