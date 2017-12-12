@@ -13,10 +13,17 @@ def main():
             tf.summary.scalar('dropout_keep_probability', keep_prob)
 
         encoded = encode_with_p_q(x)
-        p_inverse = weight_variable((28, 28), 'p_inverse')
-        q_inverse = weight_variable((28, 28), 'q_inverse')
-        variable_summaries(p_inverse)
-        variable_summaries(q_inverse)
+
+        with tf.name_scope('p_inverse'):
+            p_inverse = weight_variable((28, 28))
+            variable_summaries(p_inverse)
+            tf.summary.histogram('matrix', p_inverse)
+
+        with tf.name_scope('q_inverse'):
+            q_inverse = weight_variable((28, 28))
+            variable_summaries(q_inverse)
+            tf.summary.histogram('matrix', q_inverse)
+
         decoded = permute(encoded, p_inverse, q_inverse)
 
         pictures = pickle.load(open('./static/pictures.pkl', 'rb'))
@@ -26,7 +33,7 @@ def main():
             tf.summary.image('image_%d' % l, tf.reshape(d * 256, [-1, 28, 28, 1]), max_outputs=10)
 
         main_net = le_net(decoded, keep_prob, 'LeNet')
-        train_step, accuracy = train_affair(y_, main_net, 'train_affair')
+        train_step, accuracy = train_affair(y_, main_net, 'train_affair', rate=0.01)
 
     merged = tf.summary.merge_all()
 

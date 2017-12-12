@@ -91,7 +91,7 @@ def le_net(input_tensor, keep_prob, net_name):
     return nn2_drop
 
 
-def train_affair(labels, logits, name):
+def train_affair(labels, logits, name, rate=1e-4):
     with tf.name_scope(name):
         with tf.name_scope('cross_entropy'):
             diff = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits)
@@ -100,7 +100,7 @@ def train_affair(labels, logits, name):
         tf.summary.scalar('cross_entropy', cross_entropy)
 
         with tf.name_scope('train'):
-            train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+            train_step = tf.train.AdamOptimizer(rate).minimize(cross_entropy)
 
         with tf.name_scope('accuracy'):
             with tf.name_scope('correct_prediction'):
