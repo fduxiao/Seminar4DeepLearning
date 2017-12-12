@@ -23,7 +23,7 @@ def main():
 
     train_writer = tf.summary.FileWriter('./tensorboard/normal', sess.graph)
     saver = tf.train.Saver()
-    saver_path = './checkpoints/normal.ckpt'
+    saver_path = './checkpoints/normal/normal.ckpt'
     if os.path.isfile(saver_path+'.meta'):
         saver.restore(sess, saver_path)
     else:

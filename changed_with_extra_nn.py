@@ -42,7 +42,7 @@ def main():
 
     train_writer = tf.summary.FileWriter('./tensorboard/changed_with_extra_nn', sess.graph)
     saver = tf.train.Saver()
-    saver_path = './checkpoints/changed_with_extra_nn.ckpt'
+    saver_path = './checkpoints/changed_with_extra_nn/changed_with_extra_nn.ckpt'
     if os.path.isfile(saver_path+'.meta'):
         saver.restore(sess, saver_path)
     else:

@@ -42,9 +42,9 @@ def main():
 
     train_writer = tf.summary.FileWriter('./tensorboard/refine', sess.graph)
     saver = tf.train.Saver()
-    saver_path = './checkpoints/refine.ckpt'
+    saver_path = './checkpoints/refine/refine.ckpt'
     if os.path.isfile(saver_path+'.meta'):
-        saver.restore(sess, './checkpoints/normal.ckpt')
+        saver.restore(sess, './checkpoints/normal/normal.ckpt')
     else:
         init_op = tf.global_variables_initializer()
         sess.run(init_op)

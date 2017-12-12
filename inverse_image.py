@@ -32,7 +32,7 @@ def main():
 
     train_writer = tf.summary.FileWriter('./tensorboard/inverse_image', sess.graph)
     saver = tf.train.Saver()
-    saver_path = './checkpoints/inverse_image.ckpt'
+    saver_path = './checkpoints/inverse_image/inverse_image.ckpt'
     if os.path.isfile(saver_path+'.meta'):
         saver.restore(sess, saver_path)
     else:

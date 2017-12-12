@@ -1,7 +1,6 @@
 from basic_framework import *
 from tensorflow.examples.tutorials.mnist import input_data
 import os
-import numpy as np
 
 
 def main():
@@ -87,7 +86,7 @@ def main():
 
     train_writer = tf.summary.FileWriter('./tensorboard/changed_with_extra_nn2', sess.graph)
     saver = tf.train.Saver()
-    saver_path = './checkpoints/changed_with_extra_nn2.ckpt'
+    saver_path = './checkpoints/changed_with_extra_nn2/changed_with_extra_nn2.ckpt'
     if os.path.isfile(saver_path+'.meta'):
         saver.restore(sess, saver_path)
     else:
