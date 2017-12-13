@@ -57,7 +57,7 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
         return activations
 
 
-def cnn_layer(input_tensor, conv_dim, layer_name, act=tf.nn.relu):
+def cnn_layer(input_tensor, conv_dim, layer_name, act=tf.nn.relu, pool=max_pool_2x2):
     with tf.name_scope(layer_name):
         # This Variable will hold the state of the weights for the layer
         with tf.name_scope('conv_kernel'):
@@ -71,7 +71,7 @@ def cnn_layer(input_tensor, conv_dim, layer_name, act=tf.nn.relu):
             tf.summary.histogram('pre_activations', conv_preactivate)
         activations = act(conv_preactivate, name='activation')
         tf.summary.histogram('activations', activations)
-        pooled = max_pool_2x2(activations, name='pooled')
+        pooled = pool(activations, name='pooled')
         tf.summary.histogram('pooled', pooled)
         return pooled
 
@@ -86,9 +86,8 @@ def le_net(input_tensor, keep_prob, net_name):
         nn1 = nn_layer(cnn2_flat, 7 * 7 * 64, 1024, 'nn1')
         nn1_drop = tf.nn.dropout(nn1, keep_prob)
 
-        nn2 = nn_layer(nn1_drop, 1024, 10, 'nn2')
-        nn2_drop = tf.nn.dropout(nn2, keep_prob)
-    return nn2_drop
+        nn2 = nn_layer(nn1_drop, 1024, 10, 'nn2', act=tf.identity)
+    return nn2
 
 
 def train_affair(labels, logits, name, rate=1e-4):
