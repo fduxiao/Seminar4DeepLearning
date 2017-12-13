@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <meta charset="UTF-8">
+    <title>Handwrite</title>
+
+    <style>
+        .box {
+            width: 5px;
+            height: 5px;
+            border: dashed 1px;
+            color: gray;
+            align-self: center;
+        }
+        .line {
+            width: 560px;
+        }
+        .clicked {
+            background: black;
+        }
+        #painter {
+            width: 28px;
+            height: 28px;
+        }
+    </style>
+</head>
+<body class="container">
+<hr/>
+<div class="container row text-center">
+    <div id="painter" class="container text-center"></div>
+</div>
+<br/>
+<div class="row text-center">
+    <button id="act" type="button" class="btn btn-default">act</button>
+    <button id="clear" type="button" class="btn btn-default">clear</button>
+    <div id="result"></div>
+</div>
+</body>
+<script>
+    var xs=[];
+
+    function set_box(self) {
+            var i = $(self).attr('data-i');
+            var j = $(self).attr('data-j');
+            $(self).addClass('clicked');
+            xs[i][j] = 1;
+    }
+
+    function startup() {
+
+        xs = [];
+        var painter = $("#painter");
+        painter.html('');
+        for(var i=0; i<28; i++) {
+           var line = [];
+           var div_row = $('<div class="row line"></div>');
+           for(var j=0; j<28; j++) {
+               line.push(0);
+               var box = $('<div draggable="true" class="box pull-left" data-i="'+i+'" data-j="'+j+'"></div>');
+               box.click(function () {
+                   set_box(this);
+               });
+               box.bind('dragover', function(){
+                    set_box(this);
+                });
+               div_row.append(box);
+           }
+           xs.push(line);
+           painter.append(div_row);
+        }
+    }
+    $(document).ready(function () {
+        startup();
+        $('#clear').click(function () {
+            startup();
+        });
+
+        $('#act').click(function () {
+            $.ajax({
+              type: "POST",
+              url: './recognize',
+              data: JSON.stringify(xs),
+              success: function (data) {
+                  var r = data[0];
+                  $("#result").html(r);
+              },
+              contentType: 'application/json'
+            });
+        });
+    });
+</script>
+</html>
